@@ -1,0 +1,1262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Provence">
+<title>Provence · Luberon 2026</title>
+<style>
+  :root {
+    --ochre: #C97D3A;
+    --ochre-light: #E8A85A;
+    --ochre-pale: #F5E6D0;
+    --lavender: #7B6FA0;
+    --lavender-light: #B8B0D0;
+    --sage: #6B8C6B;
+    --stone: #4A4440;
+    --stone-light: #7A706C;
+    --cream: #FAF6F0;
+    --white: #FFFFFF;
+    --shadow: rgba(74,68,64,0.15);
+    --tab-h: 64px;
+    --header-h: 56px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Georgia', 'Times New Roman', serif;
+    background: var(--cream);
+    color: var(--stone);
+    height: 100dvh;
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+  }
+
+  /* ── Header ── */
+  #header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: var(--header-h);
+    background: var(--ochre);
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    padding-top: env(safe-area-inset-top);
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  #header h1 {
+    font-size: 20px;
+    color: var(--white);
+    letter-spacing: 0.04em;
+    font-weight: normal;
+    font-style: italic;
+  }
+  #header span {
+    margin-left: 8px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.75);
+    font-style: normal;
+    font-family: -apple-system, sans-serif;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  /* ── Tab Bar ── */
+  #tabs {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    height: calc(var(--tab-h) + env(safe-area-inset-bottom));
+    padding-bottom: env(safe-area-inset-bottom);
+    background: var(--white);
+    border-top: 1px solid rgba(74,68,64,0.12);
+    display: flex;
+    z-index: 100;
+    box-shadow: 0 -2px 12px var(--shadow);
+  }
+  .tab {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    cursor: pointer;
+    transition: background 0.15s;
+    padding-top: 6px;
+  }
+  .tab:active { background: var(--ochre-pale); }
+  .tab-icon { font-size: 22px; line-height: 1; }
+  .tab-label {
+    font-size: 10px;
+    font-family: -apple-system, sans-serif;
+    color: var(--stone-light);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .tab.active .tab-label { color: var(--ochre); }
+  .tab.active .tab-icon { filter: none; }
+
+  /* ── Content area ── */
+  #content {
+    position: fixed;
+    top: var(--header-h);
+    bottom: calc(var(--tab-h) + env(safe-area-inset-bottom));
+    left: 0; right: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .page { display: none; padding: 16px 16px 24px; }
+  .page.active { display: block; }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--white);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 6px var(--shadow);
+    overflow: hidden;
+  }
+  .card-header {
+    background: var(--ochre-pale);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .card-header.no-toggle { cursor: default; }
+  .card-icon { font-size: 20px; }
+  .card-title {
+    font-size: 16px;
+    font-style: italic;
+    color: var(--stone);
+    flex: 1;
+  }
+  .card-sub {
+    font-size: 11px;
+    font-family: -apple-system, sans-serif;
+    color: var(--stone-light);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .card-chevron {
+    font-size: 12px;
+    color: var(--stone-light);
+    transition: transform 0.2s;
+  }
+  .card-body {
+    padding: 14px 16px;
+    display: none;
+    font-family: -apple-system, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--stone);
+  }
+  .card-body.open { display: block; }
+  .card.always-open .card-body { display: block; }
+
+  /* ── Day cards ── */
+  .day-badge {
+    display: inline-block;
+    background: var(--ochre);
+    color: white;
+    font-size: 11px;
+    font-family: -apple-system, sans-serif;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 20px;
+    margin-bottom: 8px;
+    letter-spacing: 0.04em;
+  }
+
+  /* ── Tags ── */
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .tag {
+    font-size: 11px;
+    font-family: -apple-system, sans-serif;
+    padding: 3px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.03em;
+  }
+  .tag-market { background: #FFF0DC; color: #9A5500; }
+  .tag-drone { background: #E8EEF8; color: #3A5080; }
+  .tag-shop { background: #F0EEF8; color: #5A4880; }
+  .tag-photo { background: #E8F2E8; color: #3A6040; }
+  .tag-food { background: #FDE8E8; color: #803030; }
+  .tag-tip { background: #FFFDE8; color: #706000; }
+
+  /* ── Map buttons ── */
+  .map-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--ochre);
+    color: white;
+    text-decoration: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: -apple-system, sans-serif;
+    font-weight: 500;
+    margin-top: 10px;
+    margin-right: 8px;
+  }
+  .map-btn-outline {
+    background: transparent;
+    border: 1.5px solid var(--ochre);
+    color: var(--ochre);
+  }
+
+  /* ── Section headings ── */
+  .section-label {
+    font-size: 11px;
+    font-family: -apple-system, sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ochre);
+    margin: 14px 0 6px;
+  }
+
+  ul.detail-list { list-style: none; padding: 0; }
+  ul.detail-list li {
+    padding: 5px 0;
+    border-bottom: 1px solid rgba(74,68,64,0.07);
+    display: flex;
+    gap: 8px;
+  }
+  ul.detail-list li:last-child { border-bottom: none; }
+  ul.detail-list li::before { content: '·'; color: var(--ochre); font-size: 18px; line-height: 1.2; flex-shrink: 0; }
+
+  /* ── Alert box ── */
+  .alert {
+    background: #FFF8E8;
+    border-left: 3px solid var(--ochre);
+    border-radius: 0 8px 8px 0;
+    padding: 10px 12px;
+    font-size: 13px;
+    margin: 10px 0;
+    font-family: -apple-system, sans-serif;
+    line-height: 1.5;
+  }
+  .alert strong { color: var(--ochre); }
+
+  .warn {
+    background: #FFF0F0;
+    border-left: 3px solid #C04040;
+  }
+  .warn strong { color: #C04040; }
+
+  /* ── Drone page specifics ── */
+  .drone-spot {
+    background: var(--white);
+    border-radius: 12px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 6px var(--shadow);
+    overflow: hidden;
+  }
+  .drone-header {
+    background: #E8EEF8;
+    padding: 12px 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .drone-title { font-size: 15px; color: var(--stone); font-style: italic; flex: 1; }
+  .drone-rating { font-size: 12px; color: #3A5080; font-family: -apple-system, sans-serif; font-weight: 600; }
+
+  /* ── Market table ── */
+  .market-row {
+    display: flex;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(74,68,64,0.08);
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .market-row:last-child { border-bottom: none; }
+  .market-day {
+    font-family: -apple-system, sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--ochre);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    min-width: 36px;
+    padding-top: 1px;
+  }
+  .market-info { flex: 1; }
+  .market-name { font-size: 15px; font-style: italic; margin-bottom: 2px; }
+  .market-detail { font-size: 12px; font-family: -apple-system, sans-serif; color: var(--stone-light); }
+  .market-star { font-size: 18px; }
+
+  /* ── Page intro ── */
+  .page-intro {
+    font-family: -apple-system, sans-serif;
+    font-size: 13px;
+    color: var(--stone-light);
+    margin-bottom: 14px;
+    line-height: 1.5;
+  }
+
+  /* ── Practical items ── */
+  .prac-item {
+    display: flex;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(74,68,64,0.08);
+    align-items: flex-start;
+  }
+  .prac-item:last-child { border-bottom: none; }
+  .prac-icon { font-size: 22px; flex-shrink: 0; }
+  .prac-text h4 { font-size: 14px; margin-bottom: 2px; font-family: -apple-system, sans-serif; font-weight: 600; }
+  .prac-text p { font-size: 13px; font-family: -apple-system, sans-serif; color: var(--stone-light); line-height: 1.5; }
+
+  /* ── Rhythm block ── */
+  .rhythm {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .rhythm-item {
+    background: var(--ochre-pale);
+    border-radius: 8px;
+    padding: 10px;
+  }
+  .rhythm-time { font-size: 11px; font-family: -apple-system, sans-serif; font-weight: 700; color: var(--ochre); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 3px; }
+  .rhythm-desc { font-size: 13px; font-family: -apple-system, sans-serif; color: var(--stone); line-height: 1.4; }
+
+  /* ── Scrollbar hide ── */
+  #content::-webkit-scrollbar { display: none; }
+</style>
+</head>
+<body>
+
+<div id="header">
+  <h1>Luberon</h1>
+  <span>May 28 – Jun 2, 2026</span>
+</div>
+
+<div id="content">
+
+  <!-- ═══════════════════════════════ ITINERARY PAGE ═══════════════════════════════ -->
+  <div class="page active" id="page-itinerary">
+    <p class="page-intro">Base: <strong>Mas de la Tour, Gargas (84400)</strong> · 5 nights · Car essential</p>
+
+    <!-- Day 1 -->
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">
+        <span class="card-icon">🛬</span>
+        <div>
+          <div class="card-title">Thu May 28 — Arrival + Roussillon</div>
+          <div class="card-sub">Light day · settle in</div>
+        </div>
+        <span class="card-chevron">▼</span>
+      </div>
+      <div class="card-body">
+        <span class="day-badge">Day 1</span>
+        <div class="section-label">Plan</div>
+        <ul class="detail-list">
+          <li>Arrive, unpack, get oriented at Mas de la Tour</li>
+          <li>Easy afternoon drive to Roussillon (~10 min)</li>
+          <li>Walk the <strong>Sentier des Ocres</strong> — short, colorful, easy</li>
+          <li>Golden hour: ochre cliffs + village light</li>
+          <li>Option: <strong>Mines de Bruoux</strong> right in Gargas — unique ochre mine visit</li>
+        </ul>
+        <div class="section-label">Drone</div>
+        <ul class="detail-list">
+          <li>Outskirts and ochre fields only — not village center</li>
+          <li>Check AlphaTango before launching near Roussillon (historic monument zone)</li>
+        </ul>
+        <div class="tags">
+          <span class="tag tag-photo">📷 Ochre trail</span>
+          <span class="tag tag-drone">🚁 Outskirts only</span>
+        </div>
+        <a class="map-btn" href="maps://?address=Roussillon,Vaucluse,France">📍 Roussillon</a>
+        <a class="map-btn map-btn-outline" href="maps://?address=Mines+de+Bruoux,Gargas,France">⛏ Mines de Bruoux</a>
+      </div>
+    </div>
+
+    <!-- Day 2 -->
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">
+        <span class="card-icon">🛍️</span>
+        <div>
+          <div class="card-title">Fri May 29 — Lourmarin Loop</div>
+          <div class="card-sub">Bonnieux · Lourmarin · Ménerbes</div>
+        </div>
+        <span class="card-chevron">▼</span>
+      </div>
+      <div class="card-body">
+        <span class="day-badge">Day 2</span>
+        <div class="section-label">Route</div>
+        <p style="font-family:-apple-system,sans-serif;font-size:13px;margin-bottom:8px;">Gargas → Bonnieux (views + walk) → Lourmarin (market + lunch) → Ménerbes → return</p>
+        <div class="section-label">Highlights</div>
+        <ul class="detail-list">
+          <li><strong>Bonnieux</strong> — perched village, panoramic views, cedar forest nearby. Great for lunch with a view (~15–20 min from Gargas)</li>
+          <li><strong>Lourmarin market</strong> — Friday market: linens, pottery, clothing. Village is flat and easy to wander. Renaissance château; Camus buried here</li>
+          <li><strong>Ménerbes</strong> — quiet, perched, artists' village (Picasso, Nicolas de Staël). Visit <em>Maison de la Truffe et du Vin</em></li>
+        </ul>
+        <div class="section-label">Shopping</div>
+        <ul class="detail-list">
+          <li>Lourmarin: curated boutiques, linens, ceramics, soaps</li>
+          <li>Ménerbes: local truffle and wine products</li>
+        </ul>
+        <div class="section-label">Drone</div>
+        <ul class="detail-list">
+          <li>Vineyard rows between villages — roadside pull-offs</li>
+          <li>Layered valley landscapes heading south toward Lourmarin</li>
+        </ul>
+        <div class="tags">
+          <span class="tag tag-market">🛒 Lourmarin Fri</span>
+          <span class="tag tag-shop">🧶 Linens/pottery</span>
+          <span class="tag tag-drone">🚁 Vineyards</span>
+        </div>
+        <a class="map-btn" href="maps://?address=Bonnieux,Vaucluse,France">📍 Bonnieux</a>
+        <a class="map-btn map-btn-outline" href="maps://?address=Lourmarin,Vaucluse,France">📍 Lourmarin</a>
+        <a class="map-btn map-btn-outline" href="maps://?address=Menerbes,Vaucluse,France">📍 Ménerbes</a>
+      </div>
+    </div>
+
+    <!-- Day 3 -->
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">
+        <span class="card-icon">🏺</span>
+        <div>
+          <div class="card-title">Sat May 30 — Apt Market + Rustrel</div>
+          <div class="card-sub">Biggest market day · Colorado Provençal</div>
+        </div>
+        <span class="card-chevron">▼</span>
+      </div>
+      <div class="card-body">
+        <span class="day-badge">Day 3</span>
+        <div class="alert"><strong>★ Priority day.</strong> Apt market is one of the oldest & largest in France — 300+ stalls since the 12th century. Designated <em>site remarquable du goût</em>. Go early.</div>
+        <div class="section-label">Route</div>
+        <p style="font-family:-apple-system,sans-serif;font-size:13px;margin-bottom:8px;">Gargas → Apt (~10 min) → Rustrel (~20 min) → Saint-Saturnin-lès-Apt (optional)</p>
+        <div class="section-label">Highlights</div>
+        <ul class="detail-list">
+          <li><strong>Apt market</strong> 8am–1pm: food, crafts, cheese, regional produce, textiles, baskets. Stock up on picnic supplies</li>
+          <li><strong>Le Colorado Provençal (Rustrel)</strong> — former ochre quarries. Red/orange spires, miniature American Southwest feel. Spectacular cinematic drone territory</li>
+          <li><strong>Saint-Saturnin-lès-Apt</strong> — quieter village if time permits</li>
+        </ul>
+        <div class="section-label">Shopping at Apt</div>
+        <ul class="detail-list">
+          <li>Regional cheeses, salted butters, olives, lavender honey</li>
+          <li>Textiles, baskets, ceramics</li>
+        </ul>
+        <div class="section-label">Drone — Colorado Provençal</div>
+        <ul class="detail-list">
+          <li>Launch from rural ochre landscape — outside any protected perimeter</li>
+          <li>Cinematic opportunity: red/orange formations + blue sky</li>
+          <li>Check AlphaTango — Rustrel is open but verify before flying</li>
+        </ul>
+        <div class="tags">
+          <span class="tag tag-market">🛒 Apt Sat ★</span>
+          <span class="tag tag-drone">🚁 Colorado Provençal</span>
+          <span class="tag tag-food">🧀 Cheese + honey</span>
+        </div>
+        <a class="map-btn" href="maps://?address=Apt,Vaucluse,France">📍 Apt Market</a>
+        <a class="map-btn map-btn-outline" href="maps://?address=Colorado+Provencal,Rustrel,France">📍 Colorado Provençal</a>
+      </div>
+    </div>
+
+    <!-- Day 4 -->
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">
+        <span class="card-icon">🛶</span>
+        <div>
+          <div class="card-title">Sun May 31 — L'Isle-sur-la-Sorgue</div>
+          <div class="card-sub">Antiques · canals · Fontaine-de-Vaucluse</div>
+        </div>
+        <span class="card-chevron">▼</span>
+      </div>
+      <div class="card-body">
+        <span class="day-badge">Day 4</span>
+        <div class="section-label">Route</div>
+        <p style="font-family:-apple-system,sans-serif;font-size:13px;margin-bottom:8px;">Gargas → L'Isle-sur-la-Sorgue (~45 min) → Fontaine-de-Vaucluse (optional, ~15 min further)</p>
+        <div class="section-label">Highlights</div>
+        <ul class="detail-list">
+          <li><strong>Sunday antiques + brocante market</strong> — massive, set along the river, very scenic. Arrive early (8–9am) — gets busy</li>
+          <li><strong>Canal photography</strong> — water wheels, reflections, bridges. Classic Provence water-town atmosphere</li>
+          <li><strong>Fontaine-de-Vaucluse</strong> — dramatic cliff spring, one of France's most powerful natural springs. Short walk from the village</li>
+        </ul>
+        <div class="section-label">Shopping</div>
+        <ul class="detail-list">
+          <li>Vintage linens, antique prints, decorative objects, brocante finds</li>
+        </ul>
+        <div class="tags">
+          <span class="tag tag-market">🛒 Antiques Sun</span>
+          <span class="tag tag-photo">📷 Canal reflections</span>
+          <span class="tag tag-shop">🖼 Vintage prints</span>
+        </div>
+        <a class="map-btn" href="maps://?address=L'Isle-sur-la-Sorgue,France">📍 L'Isle-sur-la-Sorgue</a>
+        <a class="map-btn map-btn-outline" href="maps://?address=Fontaine-de-Vaucluse,France">📍 Fontaine-de-Vaucluse</a>
+      </div>
+    </div>
+
+    <!-- Day 5 -->
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">
+        <span class="card-icon">🏛️</span>
+        <div>
+          <div class="card-title">Mon Jun 1 — Gordes + Sénanque</div>
+          <div class="card-sub">Iconic hilltop · Abbey · Goult</div>
+        </div>
+        <span class="card-chevron">▼</span>
+      </div>
+      <div class="card-body">
+        <span class="day-badge">Day 5</span>
+        <div class="alert"><strong>Go early.</strong> Gordes is the most-photographed village in Provence. Morning light + fewer buses = much better experience.</div>
+        <div class="section-label">Route</div>
+        <p style="font-family:-apple-system,sans-serif;font-size:13px;margin-bottom:8px;">Gargas → Gordes (~15–20 min) → Sénanque Abbey (~5 min from Gordes) → Goult (return loop)</p>
+        <div class="section-label">Highlights</div>
+        <ul class="detail-list">
+          <li><strong>Gordes</strong> — stone houses cascading down hillside. Visit the château, wander cobbled streets, hit classic viewpoints</li>
+          <li><strong>Abbaye de Sénanque</strong> — 12th-century Cistercian abbey. Lavender fields in front just beginning late May. Drone restricted over abbey; road approach offers iconic still shots</li>
+          <li><strong>Goult</strong> — quiet "hidden gem" locals love. Less touristy, great atmosphere, small market on Thursdays (not today but worth the stop)</li>
+        </ul>
+        <div class="section-label">Drone — Gordes area</div>
+        <ul class="detail-list">
+          <li>Rural viewpoints outside village perimeter — not crowded areas</li>
+          <li>Valley below Gordes: layered limestone + agriculture</li>
+          <li>Sénanque: road approach only for drone — abbey itself is restricted</li>
+        </ul>
+        <div class="tags">
+          <span class="tag tag-photo">📷 Gordes viewpoints</span>
+          <span class="tag tag-drone">🚁 Valley rural shots</span>
+          <span class="tag tag-photo">📷 Sénanque still</span>
+        </div>
+        <a class="map-btn" href="maps://?address=Gordes,Vaucluse,France">📍 Gordes</a>
+        <a class="map-btn map-btn-outline" href="maps://?address=Abbaye+de+Senanque,France">📍 Sénanque Abbey</a>
+        <a class="map-btn map-btn-outline" href="maps://?address=Goult,Vaucluse,France">📍 Goult</a>
+      </div>
+    </div>
+
+    <!-- Day 6 -->
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">
+        <span class="card-icon">✈️</span>
+        <div>
+          <div class="card-title">Tue Jun 2 — Departure</div>
+          <div class="card-sub">Marseille · last morning</div>
+        </div>
+        <span class="card-chevron">▼</span>
+      </div>
+      <div class="card-body">
+        <span class="day-badge">Day 6</span>
+        <ul class="detail-list">
+          <li>Gordes has a Tuesday morning market — if time allows before checkout, worth a quick loop</li>
+          <li>Otherwise: quiet coffee, final drive through the ochre countryside</li>
+          <li>Marseille airport (MRS) ~1 hr from Gargas — allow extra time for rental return</li>
+        </ul>
+        <div class="tags">
+          <span class="tag tag-market">🛒 Gordes Tue (optional)</span>
+        </div>
+        <a class="map-btn" href="maps://?address=Marseille+Provence+Airport,France">📍 Marseille Airport</a>
+      </div>
+    </div>
+
+    <!-- Daily rhythm -->
+    <div class="card always-open">
+      <div class="card-header no-toggle">
+        <span class="card-icon">🕐</span>
+        <div class="card-title">Daily Rhythm</div>
+      </div>
+      <div class="card-body">
+        <div class="rhythm">
+          <div class="rhythm-item">
+            <div class="rhythm-time">8:30 – 12:00</div>
+            <div class="rhythm-desc">Market or village — arrive early</div>
+          </div>
+          <div class="rhythm-item">
+            <div class="rhythm-time">12:00 – 14:00</div>
+            <div class="rhythm-desc">Long shaded lunch in a village square</div>
+          </div>
+          <div class="rhythm-item">
+            <div class="rhythm-time">14:00 – 17:00</div>
+            <div class="rhythm-desc">Return to Gargas · rest · nearby drone session</div>
+          </div>
+          <div class="rhythm-item">
+            <div class="rhythm-time">17:30 – 20:00</div>
+            <div class="rhythm-desc">Golden hour photography · dinner at hotel</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ MARKETS PAGE ═══════════════════════════════ -->
+  <div class="page" id="page-markets">
+    <p class="page-intro">All markets run approx. 8am–1pm. Arrive early — especially Apt and L'Isle.</p>
+
+    <div class="card always-open">
+      <div class="card-header no-toggle">
+        <span class="card-icon">🛒</span>
+        <div class="card-title">Your Week — Market Schedule</div>
+      </div>
+      <div class="card-body">
+
+        <div class="market-row">
+          <div class="market-day">THU<br>28</div>
+          <div class="market-info">
+            <div class="market-name">Goult</div>
+            <div class="market-detail">Small, high-quality morning market · locals' favorite · less touristy than Gordes · 10 min from Gargas</div>
+            <div class="tags" style="margin-top:6px">
+              <span class="tag tag-market">Hidden gem</span>
+              <span class="tag tag-tip">Arrival day — easy</span>
+            </div>
+          </div>
+          <div class="market-star">⭐</div>
+        </div>
+
+        <div class="market-row">
+          <div class="market-day">FRI<br>29</div>
+          <div class="market-info">
+            <div class="market-name">Lourmarin + Bonnieux</div>
+            <div class="market-detail">Lourmarin: artisan focus — linens, pottery, clothing. Flat village, easy to wander. Bonnieux also has a small Friday market.</div>
+            <div class="tags" style="margin-top:6px">
+              <span class="tag tag-shop">🧶 Artisan</span>
+              <span class="tag tag-market">Two options</span>
+            </div>
+          </div>
+          <div class="market-star">⭐⭐</div>
+        </div>
+
+        <div class="market-row">
+          <div class="market-day">SAT<br>30</div>
+          <div class="market-info">
+            <div class="market-name">Apt ★★★</div>
+            <div class="market-detail">300+ stalls · oldest & largest in Luberon · 12th century tradition · <em>site remarquable du goût</em> · 10 min from Gargas · food, crafts, cheese, textiles</div>
+            <div class="alert" style="margin-top:8px"><strong>Don't miss this one.</strong> Stock up on regional cheeses, salted butter, lavender honey, olives.</div>
+          </div>
+          <div class="market-star">⭐⭐⭐</div>
+        </div>
+
+        <div class="market-row">
+          <div class="market-day">SUN<br>31</div>
+          <div class="market-info">
+            <div class="market-name">L'Isle-sur-la-Sorgue</div>
+            <div class="market-detail">Famous antiques + brocante · scenic canal setting · gets very busy · arrive 8–9am</div>
+            <div class="tags" style="margin-top:6px">
+              <span class="tag tag-shop">🖼 Vintage / antiques</span>
+            </div>
+          </div>
+          <div class="market-star">⭐⭐⭐</div>
+        </div>
+
+        <div class="market-row">
+          <div class="market-day">MON<br>1</div>
+          <div class="market-info">
+            <div class="market-name">No major market</div>
+            <div class="market-detail">Gordes day — village + Sénanque + Goult. Good day for slower pace.</div>
+          </div>
+          <div class="market-star">—</div>
+        </div>
+
+        <div class="market-row">
+          <div class="market-day">TUE<br>2</div>
+          <div class="market-info">
+            <div class="market-name">Gordes (departure morning)</div>
+            <div class="market-detail">Tuesday morning market in Gordes — if time before checkout allows</div>
+          </div>
+          <div class="market-star">⭐</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- What to buy -->
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">
+        <span class="card-icon">🧺</span>
+        <div class="card-title">What to Buy</div>
+        <span class="card-chevron">▼</span>
+      </div>
+      <div class="card-body">
+        <div class="section-label">Food</div>
+        <ul class="detail-list">
+          <li>Regional cheeses + salted butters (Apt)</li>
+          <li>Lavender honey — local varietal, different from supermarket</li>
+          <li>Olives, olive oil, tapenade</li>
+          <li>Herbes de Provence (loose, not packaged)</li>
+          <li>Candied fruits — Apt is famous for this</li>
+        </ul>
+        <div class="section-label">Crafts + Textiles</div>
+        <ul class="detail-list">
+          <li>Provençal linens (tablecloths, napkins) — Lourmarin best</li>
+          <li>Ceramics + faïence pottery</li>
+          <li>Olivewood boards, utensils</li>
+          <li>Ochre-themed art + prints — Roussillon</li>
+          <li>Vintage prints, brocante objects — L'Isle</li>
+          <li>Soaps (savon de Marseille)</li>
+        </ul>
+        <div class="section-label">Specialty</div>
+        <ul class="detail-list">
+          <li>Truffle products — Ménerbes (Maison de la Truffe et du Vin)</li>
+          <li>Local rosé wine from Luberon AOC</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Market tips -->
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">
+        <span class="card-icon">💡</span>
+        <div class="card-title">Market Tips</div>
+        <span class="card-chevron">▼</span>
+      </div>
+      <div class="card-body">
+        <ul class="detail-list">
+          <li>Bring cash — many stalls, especially small producers, don't take cards</li>
+          <li>Bring a tote bag or basket</li>
+          <li>Buy picnic supplies first (baguette, cheese, fruit) — markets clear by 1pm</li>
+          <li>Arrive by 9am for best selection and least crowds</li>
+          <li>Parking fills up fast at Apt and L'Isle — park early and walk in</li>
+          <li>May is manageable crowd-wise — not peak July/August</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ DRONE PAGE ═══════════════════════════════ -->
+  <div class="page" id="page-drone">
+    <p class="page-intro">DJI Mini 4 Pro · EU open category · VLOS · 120m max alt</p>
+
+    <div class="alert warn">
+      <strong>Before every flight:</strong> Check <strong>AlphaTango</strong> (geoportail.fr/donnees/alphatango or the app). Many Luberon villages have restricted airspace as historic monuments. Always verify the specific zone before launching.
+    </div>
+
+    <div class="section-label" style="margin:14px 0 8px;">Top Drone Spots</div>
+
+    <!-- Colorado Provençal -->
+    <div class="drone-spot">
+      <div class="drone-header" onclick="toggleDrone(this)">
+        <span style="font-size:22px;">🟤</span>
+        <div class="drone-title">Le Colorado Provençal — Rustrel</div>
+        <div class="drone-rating">★★★ Best</div>
+        <span class="card-chevron">▼</span>
+      </div>
+      <div class="card-body">
+        <ul class="detail-list">
+          <li>Former ochre quarries — red/orange spires, surreal formations</li>
+          <li>Open landscape, cinematic drone territory, minimal restrictions</li>
+          <li>Best: morning light (saturates the red/orange tones)</li>
+          <li>Pair with Sat May 30 Apt market day (~20 min from Apt)</li>
+          <li>Launch from rural access road outside the marked walking paths</li>
+        </ul>
+        <div class="tags">
+          <span class="tag tag-drone">🚁 Open zone</span>
+          <span class="tag tag-photo">📷 Cinematic</span>
+          <span class="tag tag-tip">Morning light</span>
+        </div>
+        <a class="map-btn" href="maps://?address=Colorado+Provencal,Rustrel,France">📍 Rustrel Colorado</a>
+      </div>
+    </div>
+
+    <!-- Plateau des Claparèdes -->
+    <div class="drone-spot">
+      <div class="drone-header" onclick="toggleDrone(this)">
+        <span style="font-size:22px;">🌿</span>
+        <div class="drone-title">Plateau des Claparèdes</div>
+        <div class="drone-rating">★★★</div>
+        <span class="card-chevron">▼</span>
+      </div>
+      <div class="card-body">
+        <ul class="detail-list">
+          <li>Between Bonnieux and Saignon — open agricultural plateau</li>
+          <li>Late May: early lavender + sage fields starting to color</li>
+          <li>More open and less restricted than village perimeters</li>
+          <li>Layered landscape shots: fields + limestone ridges + sky</li>
+          <li>Good roadside pull-offs for safe launch</li>
+        </ul>
+        <div class="tags">
+          <span class="tag tag-drone">🚁 Open plateau</span>
+          <span class="tag tag-photo">📷 Lavender (early)</span>
+        </div>
+        <a class="map-btn" href="maps://?address=Plateau+des+Claparades,Bonnieux,France">📍 Plateau des Claparèdes</a>
+      </div>
+    </div>
+
+    <!-- Saignon -->
+    <div class="drone-spot">
+      <div class="drone-header" onclick="toggleDrone(this)">
+        <span style="font-size:22px;">🪨</span>
+        <div class="drone-title">Saignon — Roche de Bellevue</div>
+        <div class="drone-rating">★★★</div>
+        <span class="card-chevron">▼</span>
+      </div>
+      <div class="card-body">
+        <ul class="detail-list">
+          <li>Climb the rock for 360° view of the Luberon valley</li>
+          <li>For still photography: unbeatable panoramic vantage</li>
+          <li>For drone: launch from outskirts — capture the village perched silhouette against Mont Ventoux backdrop</li>
+          <li>Early morning ideal — soft light on limestone</li>
+        </ul>
+        <div class="tags">
+          <span class="tag tag-photo">📷 360° panorama</span>
+          <span class="tag tag-drone">🚁 Village silhouette</span>
+        </div>
+        <a class="map-btn" href="maps://?address=Saignon,Vaucluse,France">📍 Saignon</a>
+      </div>
+    </div>
+
+    <!-- Vineyard rows -->
+    <div class="drone-spot">
+      <div class="drone-header" onclick="toggleDrone(this)">
+        <span style="font-size:22px;">🍇</span>
+        <div class="drone-title">Vineyard Corridors — Between Villages</div>
+        <div class="drone-rating">★★</div>
+        <span class="card-chevron">▼</span>
+      </div>
+      <div class="card-body">
+        <ul class="detail-list">
+          <li>D roads between Bonnieux–Lourmarin–Ménerbes offer rolling vineyard rows</li>
+          <li>Late May: vines leafing out, vivid green against ochre/limestone</li>
+          <li>Stop at any safe roadside pull-off on the D943 or D109</li>
+          <li>Look for lone cypress trees, dry-stone walls, terraced fields</li>
+        </ul>
+        <div class="tags">
+          <span class="tag tag-drone">🚁 Rural roads</span>
+          <span class="tag tag-photo">📷 Geometry/rows</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Gordes valley -->
+    <div class="drone-spot">
+      <div class="drone-header" onclick="toggleDrone(this)">
+        <span style="font-size:22px;">🏔️</span>
+        <div class="drone-title">Valley Below Gordes</div>
+        <div class="drone-rating">★★</div>
+        <span class="card-chevron">▼</span>
+      </div>
+      <div class="card-body">
+        <ul class="detail-list">
+          <li>Launch from the D2 road south of Gordes — rural viewpoints only, not the crowded overlooks</li>
+          <li>Classic shot: village cascading on the hill with valley agriculture below</li>
+          <li>Sénanque approach road: iconic still photography; drone restricted over abbey itself</li>
+          <li>Check AlphaTango carefully — Gordes historic monument zone</li>
+        </ul>
+        <div class="tags">
+          <span class="tag tag-drone">🚁 Valley rural only</span>
+          <span class="tag tag-tip">⚠ Check AlphaTango</span>
+        </div>
+        <a class="map-btn" href="maps://?address=Gordes,Vaucluse,France">📍 Gordes area</a>
+      </div>
+    </div>
+
+    <!-- Rules -->
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">
+        <span class="card-icon">📋</span>
+        <div class="card-title">French Drone Rules — 2026</div>
+        <span class="card-chevron">▼</span>
+      </div>
+      <div class="card-body">
+        <ul class="detail-list">
+          <li><strong>VLOS required</strong> — visual line of sight at all times</li>
+          <li><strong>120m max altitude</strong> above ground level</li>
+          <li><strong>AlphaTango</strong> — check geozones before every flight. Many Luberon villages restricted (historic monuments)</li>
+          <li><strong>EU certificate</strong> — ensure digitally accessible on your phone</li>
+          <li><strong>Open A1/A3 category</strong> for leisure — avoid flying over people, stay 150m from residential zones</li>
+          <li><strong>No fly over crowds</strong> — markets, village centers, tourist overlooks</li>
+          <li>2026 regs slightly eased for professional-category urban flights but stick to Open rules for this trip</li>
+        </ul>
+        <div class="alert warn" style="margin-top:10px">
+          <strong>Restricted areas:</strong> Village centers (historic monuments), Sénanque Abbey directly overhead, crowded market days in village squares.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ VILLAGES PAGE ═══════════════════════════════ -->
+  <div class="page" id="page-villages">
+    <p class="page-intro">All within 10–45 min of Gargas. "Plus Beaux Villages" category unless noted.</p>
+
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">
+        <span class="card-icon">🟠</span>
+        <div>
+          <div class="card-title">Roussillon</div>
+          <div class="card-sub">~10–15 min · Ochre · Sentier des Ocres</div>
+        </div>
+        <span class="card-chevron">▼</span>
+      </div>
+      <div class="card-body">
+        <ul class="detail-list">
+          <li>Stunning ochre-colored buildings, red/yellow cliffs</li>
+          <li><strong>Sentier des Ocres</strong> trail — short, colorful, easy walk through the formations</li>
+          <li>Small art galleries, ochre-themed crafts and art</li>
+          <li>Next door to Gargas — easy Day 1 arrival stop or golden-hour visit</li>
+          <li>Drone: outskirts and fields only, not village center</li>
+        </ul>
+        <a class="map-btn" href="maps://?address=Roussillon,Vaucluse,France">📍 Map</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">
+        <span class="card-icon">🏰</span>
+        <div>
+          <div class="card-title">Gordes</div>
+          <div class="card-sub">~15–20 min · Most iconic · Go early</div>
+        </div>
+        <span class="card-chevron">▼</span>
+      </div>
+      <div class="card-body">
+        <ul class="detail-list">
+          <li>The postcard hilltop village — stone houses cascading down hillside</li>
+          <li>Château, cobbled streets, classic valley viewpoints</li>
+          <li>Tuesday morning market</li>
+          <li>Combine with Sénanque Abbey (5 min away) — lavender in front of Romanesque facade</li>
+          <li>Go early — tour buses arrive mid-morning</li>
+        </ul>
+        <a class="map-btn" href="maps://?address=Gordes,Vaucluse,France">📍 Map</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">
+        <span class="card-icon">🌿</span>
+        <div>
+          <div class="card-title">Bonnieux</div>
+          <div class="card-sub">~15–20 min · Views · Cedar forest</div>
+        </div>
+        <span class="card-chevron">▼</span>
+      </div>
+      <div class="card-body">
+        <ul class="detail-list">
+          <li>Perched village, panoramic views over the valley</li>
+          <li>Cedar forest nearby for walks</li>
+          <li>Charming streets, good lunch spots</li>
+          <li>Friday market</li>
+        </ul>
+        <a class="map-btn" href="maps://?address=Bonnieux,Vaucluse,France">📍 Map</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">
+        <span class="card-icon">🎨</span>
+        <div>
+          <div class="card-title">Lourmarin</div>
+          <div class="card-sub">~25–30 min south · Elegant · Camus</div>
+        </div>
+        <span class="card-chevron">▼</span>
+      </div>
+      <div class="card-body">
+        <ul class="detail-list">
+          <li>Elegant village, flat and easy to walk</li>
+          <li>Renaissance château — Albert Camus buried in the churchyard</li>
+          <li>Upscale boutiques, linens, ceramics, soaps</li>
+          <li>Excellent for people-watching and dinner</li>
+          <li>Friday market (artisan focus)</li>
+        </ul>
+        <a class="map-btn" href="maps://?address=Lourmarin,Vaucluse,France">📍 Map</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">
+        <span class="card-icon">🍷</span>
+        <div>
+          <div class="card-title">Ménerbes</div>
+          <div class="card-sub">~20 min · Quiet · Artists · Truffle</div>
+        </div>
+        <span class="card-chevron">▼</span>
+      </div>
+      <div class="card-body">
+        <ul class="detail-list">
+          <li>Quiet perched village, strong artistic history (Picasso, Nicolas de Staël)</li>
+          <li><strong>Maison de la Truffe et du Vin</strong> — local truffle + wine products</li>
+          <li>Medieval feel, less touristy than Gordes or Roussillon</li>
+        </ul>
+        <a class="map-btn" href="maps://?address=Menerbes,Vaucluse,France">📍 Map</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">
+        <span class="card-icon">💎</span>
+        <div>
+          <div class="card-title">Goult</div>
+          <div class="card-sub">~10 min · Locals' favorite · Hidden gem</div>
+        </div>
+        <span class="card-chevron">▼</span>
+      </div>
+      <div class="card-body">
+        <ul class="detail-list">
+          <li>Quiet, manageable, less touristed than the big names</li>
+          <li>Locals' top pick — authentic atmosphere</li>
+          <li>Thursday morning market (good arrival-day option)</li>
+        </ul>
+        <a class="map-btn" href="maps://?address=Goult,Vaucluse,France">📍 Map</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">
+        <span class="card-icon">🏯</span>
+        <div>
+          <div class="card-title">Lacoste</div>
+          <div class="card-sub">~20 min · Sade castle · Medieval</div>
+        </div>
+        <span class="card-chevron">▼</span>
+      </div>
+      <div class="card-body">
+        <ul class="detail-list">
+          <li>Ruins of the Marquis de Sade's castle — feels like a medieval film set</li>
+          <li>Across the valley from Ménerbes — classic Luberon ridge view</li>
+          <li>Small, quiet, worth a short stop</li>
+        </ul>
+        <a class="map-btn" href="maps://?address=Lacoste,Vaucluse,France">📍 Map</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">
+        <span class="card-icon">🔵</span>
+        <div>
+          <div class="card-title">Saignon</div>
+          <div class="card-sub">~10 min · Valley views · Roche de Bellevue</div>
+        </div>
+        <span class="card-chevron">▼</span>
+      </div>
+      <div class="card-body">
+        <ul class="detail-list">
+          <li>Climb Roche de Bellevue for 360° valley panorama</li>
+          <li>Mont Ventoux backdrop on clear days</li>
+          <li>Quiet village, very close to Gargas</li>
+          <li>Excellent for early-morning drone: village silhouette from outskirts</li>
+        </ul>
+        <a class="map-btn" href="maps://?address=Saignon,Vaucluse,France">📍 Map</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════ PRACTICAL PAGE ═══════════════════════════════ -->
+  <div class="page" id="page-practical">
+
+    <div class="card always-open">
+      <div class="card-header no-toggle">
+        <span class="card-icon">🏡</span>
+        <div class="card-title">Your Base</div>
+      </div>
+      <div class="card-body">
+        <div class="prac-item">
+          <span class="prac-icon">📍</span>
+          <div class="prac-text">
+            <h4>Mas de la Tour</h4>
+            <p>Chemin de la Tour, 84400 Gargas, France · Heart of Luberon Valley · Private parking · Quiet setting</p>
+          </div>
+        </div>
+        <a class="map-btn" href="maps://?address=Chemin+de+la+Tour,84400+Gargas,France">📍 Navigate to Base</a>
+      </div>
+    </div>
+
+    <!-- Driving -->
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">
+        <span class="card-icon">🚗</span>
+        <div class="card-title">Driving + Parking</div>
+        <span class="card-chevron">▼</span>
+      </div>
+      <div class="card-body">
+        <ul class="detail-list">
+          <li>Car is essential — Luberon is not walkable between villages</li>
+          <li>All major sites within 10–45 min of Gargas</li>
+          <li>D-roads (departmental) are narrow but well-marked; go slow</li>
+          <li>Arrive early at Gordes, Roussillon, L'Isle — parking fills up fast</li>
+          <li>Apt market Saturday: arrive by 8–8:30am, park on outskirts and walk in</li>
+          <li>Many village centers have paid parking lots at the edge — use them</li>
+          <li>Marseille airport (MRS) ~1 hr from Gargas</li>
+        </ul>
+        <div class="section-label">Distances from Gargas</div>
+        <ul class="detail-list">
+          <li>Roussillon: ~10 min</li>
+          <li>Apt: ~10 min</li>
+          <li>Rustrel: ~20 min</li>
+          <li>Gordes: ~15–20 min</li>
+          <li>Bonnieux: ~15–20 min</li>
+          <li>Ménerbes / Goult: ~10–15 min</li>
+          <li>Lourmarin: ~25–30 min</li>
+          <li>L'Isle-sur-la-Sorgue: ~40–45 min</li>
+          <li>Fontaine-de-Vaucluse: ~50 min</li>
+          <li>Avignon: ~1 hr</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Food -->
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">
+        <span class="card-icon">🍽️</span>
+        <div class="card-title">Food + Wine</div>
+        <span class="card-chevron">▼</span>
+      </div>
+      <div class="card-body">
+        <div class="section-label">Provençal Staples</div>
+        <ul class="detail-list">
+          <li>Ratatouille, bouillabaisse (Marseille), daube provençale (beef stew)</li>
+          <li>Tapenade, anchoïade, pistou</li>
+          <li>Goat cheese (chèvre) — local and excellent</li>
+          <li>Lavender honey — buy at markets</li>
+          <li>Rosé wine — Luberon AOC, Côtes du Rhône</li>
+        </ul>
+        <div class="section-label">Strategy</div>
+        <ul class="detail-list">
+          <li>Market mornings: buy picnic supplies (baguette, cheese, fruit, olives)</li>
+          <li>Long shaded village-square lunches — the Provençal pace</li>
+          <li>Hotel dinners at base in the evening</li>
+          <li>Many villages have excellent terrace restaurants overlooking valleys</li>
+        </ul>
+        <div class="section-label">Low-Carb Finds at Markets</div>
+        <ul class="detail-list">
+          <li>Charcuterie, rillettes, cured meats</li>
+          <li>Hard cheeses, fresh chèvre</li>
+          <li>Olives, tapenade, anchovies</li>
+          <li>Rotisserie chicken (rôtisserie stalls at every big market)</li>
+          <li>Fresh vegetables — tomatoes, courgettes, aubergines</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Weather -->
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">
+        <span class="card-icon">☀️</span>
+        <div class="card-title">Weather — Late May</div>
+        <span class="card-chevron">▼</span>
+      </div>
+      <div class="card-body">
+        <ul class="detail-list">
+          <li>Warm but not stifling — ideal window (peak heat is July/August)</li>
+          <li>Fewer crowds than summer</li>
+          <li>Wildflowers + early lavender: lower-lying fields may show first blooms late May</li>
+          <li>Sénanque Abbey lavender: typically peaks mid-June to mid-July — may be just starting May 28–Jun 2</li>
+          <li>Morning light: soft and golden, ideal for photography</li>
+          <li>Afternoon: can be warm — good time to return to base</li>
+          <li>Mistral wind: occasional strong gusts — check wind before drone flights</li>
+        </ul>
+        <div class="alert"><strong>Lavender timing:</strong> Don't guarantee full bloom at Sénanque for your dates. Fields at lower elevation (Plateau des Claparèdes) will show color earlier. Check locally on arrival.</div>
+      </div>
+    </div>
+
+    <!-- Connectivity -->
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">
+        <span class="card-icon">📶</span>
+        <div class="card-title">Offline Use — This App</div>
+        <span class="card-chevron">▼</span>
+      </div>
+      <div class="card-body">
+        <ul class="detail-list">
+          <li>This guide is fully self-contained — works offline once loaded</li>
+          <li>Map buttons open Apple Maps — pre-download the Luberon/Vaucluse region in Apple Maps before departing</li>
+          <li>AlphaTango drone check requires connectivity — download the app and cache your zones before you go</li>
+          <li>Coverage in Luberon villages is generally good (Orange/Free) but rural roads can drop to EDGE</li>
+          <li>Gargas and Apt have solid coverage; remote plateau roads may not</li>
+        </ul>
+        <div class="alert"><strong>Pre-trip prep:</strong> Download Apple Maps region · Download AlphaTango zones · Save this page to Home Screen (Share → Add to Home Screen)</div>
+      </div>
+    </div>
+
+    <!-- Beyond Luberon -->
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">
+        <span class="card-icon">🗺️</span>
+        <div class="card-title">Beyond Luberon (Longer Drives)</div>
+        <span class="card-chevron">▼</span>
+      </div>
+      <div class="card-body">
+        <ul class="detail-list">
+          <li><strong>Avignon</strong> — ~1 hr: Palais des Papes, Pont d'Avignon, excellent city</li>
+          <li><strong>Fontaine-de-Vaucluse</strong> — ~50 min: dramatic cliff spring, worth combining with L'Isle day</li>
+          <li><strong>Pont du Gard</strong> — ~1.5 hr: Roman aqueduct, spectacular</li>
+          <li><strong>Aix-en-Provence</strong> — ~1 hr: Cézanne country, lovely city</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Emergency / Useful -->
+    <div class="card">
+      <div class="card-header" onclick="toggle(this)">
+        <span class="card-icon">🆘</span>
+        <div class="card-title">Useful Numbers</div>
+        <span class="card-chevron">▼</span>
+      </div>
+      <div class="card-body">
+        <ul class="detail-list">
+          <li><strong>Emergency (EU):</strong> 112</li>
+          <li><strong>SAMU (medical):</strong> 15</li>
+          <li><strong>Police:</strong> 17</li>
+          <li><strong>Pompiers (fire/rescue):</strong> 18</li>
+        </ul>
+        <a class="map-btn" href="tel:112">📞 Call 112</a>
+      </div>
+    </div>
+
+  </div>
+
+</div><!-- /content -->
+
+<!-- Tab bar -->
+<div id="tabs">
+  <div class="tab active" onclick="showPage('itinerary', this)">
+    <span class="tab-icon">📅</span>
+    <span class="tab-label">Days</span>
+  </div>
+  <div class="tab" onclick="showPage('markets', this)">
+    <span class="tab-icon">🛒</span>
+    <span class="tab-label">Markets</span>
+  </div>
+  <div class="tab" onclick="showPage('drone', this)">
+    <span class="tab-icon">🚁</span>
+    <span class="tab-label">Drone</span>
+  </div>
+  <div class="tab" onclick="showPage('villages', this)">
+    <span class="tab-icon">🏘️</span>
+    <span class="tab-label">Villages</span>
+  </div>
+  <div class="tab" onclick="showPage('practical', this)">
+    <span class="tab-icon">⚙️</span>
+    <span class="tab-label">Info</span>
+  </div>
+</div>
+
+<script>
+  function showPage(name, tabEl) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    tabEl.classList.add('active');
+    document.getElementById('content').scrollTop = 0;
+  }
+
+  function toggle(headerEl) {
+    const body = headerEl.nextElementSibling;
+    const chevron = headerEl.querySelector('.card-chevron');
+    const isOpen = body.classList.contains('open');
+    body.classList.toggle('open', !isOpen);
+    if (chevron) chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
+  }
+
+  function toggleDrone(headerEl) {
+    const body = headerEl.nextElementSibling;
+    const chevron = headerEl.querySelector('.card-chevron');
+    const isOpen = body.classList.contains('open');
+    body.classList.toggle('open', !isOpen);
+    if (chevron) chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
+  }
+</script>
+</body>
+</html>
